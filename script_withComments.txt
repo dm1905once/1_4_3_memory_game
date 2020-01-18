@@ -1,0 +1,85 @@
+//careful with variable names abbreviation , this should be totalClicks,totalMatches
+let conClicks = 0;
+let totClicks = 0;
+let totMatches = 0;
+let firstCard = undefined;
+let firstCardValue = undefined;
+let firstCardId = undefined;
+//watchout for variable names without clear meaning, what valueArray should contain?
+const valueArray = [];
+//could evaluate change picture names, to numbers, to make it easier to handle and iterate on them
+const picArray = ["candle", "cat", "hands", "harley", "kid", "muffin", "palmtree", "piano", "seattle", "train"];
+
+textInsideBox = document.querySelector("#text-inside");
+allCards = document.querySelectorAll("#board img.img-card");
+//Implicit value, this should be done explicitly like number of cards on board, and number of cards on game
+for (let i=1; i<=allCards.length/2; i++) {
+    valueArray.push(i);
+    valueArray.push(i); 
+}
+
+for (let i=0; i<allCards.length; i++) {
+    let randomPosition = Math.floor(Math.random() * valueArray.length)
+    allCards[i].setAttribute("data-cardValue", valueArray[randomPosition]);
+    allCards[i].setAttribute("data-cardImg", picArray[valueArray[randomPosition]]);
+    valueArray.splice(randomPosition,1);
+}
+
+const startButton = document.querySelector("#start-button");
+startButton.addEventListener('click', activateBoard);
+
+function activateBoard(){
+    startButton.style.display = "none";
+    let board = document.querySelector("#board");
+    board.addEventListener('click', playGame); 
+}
+
+function playGame(){
+    if (event.target.tagName === "IMG"){
+        let currentCard = event.target;
+        console.log(event.target);
+        let currentCardValue = currentCard.getAttribute("data-cardValue");
+        let currentCardId = currentCard.getAttribute("data-cardId");
+        let currentCardImg = currentCard.getAttribute("data-cardImg");
+        textInsideBox.innerText = `Attempts: ${++totClicks}`;
+        conClicks++;
+        //instead of keeping track of the state through the click counts, a more reliable way would be setting a variable names with
+        // the card selected
+        if (conClicks < 3){
+            currentCard.setAttribute("src",`imgs/${currentCardImg}.jpg`);
+            if (conClicks == 1) {
+                firstCard = currentCard;
+                firstCardValue = currentCardValue;
+                firstCardId = currentCardId;
+            }
+            if (conClicks == 2) {
+                //well done with the value + id comparison, and use of the === operator
+                if (currentCardValue === firstCardValue && currentCardId != firstCardId){
+                    totMatches++;
+                    if (totMatches === allCards.length/2){
+                        textInsideBox.innerText = `Congratulations! \n Game completed in ${totClicks} attempts`;
+                        board.removeEventListener('click', playGame);
+                        //instead of changing the start button style display, could
+                        startButton.textContent = "Reload";
+                        startButton.style.display = "inline-block";
+                        startButton.classList.replace("btn-outline-warning", "btn-warning")
+                        startButton.addEventListener('click', function(){
+                            //a good improvement to try would be reset the game state, without reloading the window
+                            window.location.reload();
+                        });
+                    }
+                } else {
+                    //good use of setTimeout so the user can continue playing without being blocked                    
+                    setTimeout(function() {
+                        firstCard.setAttribute("src","imgs/question.gif");
+                        currentCard.setAttribute("src","imgs/question.gif");
+                    }, 1000);
+                }
+                conClicks = 0;
+                firstCardValue = "";
+                firstCardId = "";
+            }
+        } 
+    }
+}
+//missing the highscore feature using the localStorage
